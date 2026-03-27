@@ -90,6 +90,25 @@
 .pin--gold .pin__dot  { background: var(--gold); box-shadow: 0 0 8px rgba(201,169,110,0.6); }
 .pin--gold .pin__pulse { border: 1.5px solid var(--gold); }
 
+/* Бейдж с количеством поздравлений на пине */
+.pin__count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--gold);
+  color: #000;
+  font-size: 9px;
+  font-weight: 700;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  line-height: 1;
+}
+
 @keyframes pulse {
   0%   { transform: scale(0.4); opacity: 0.6; }
   100% { transform: scale(1.8); opacity: 0; }

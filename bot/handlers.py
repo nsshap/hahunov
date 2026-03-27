@@ -19,6 +19,7 @@ router = Router()
 
 WEBSITE_URL = os.environ.get("WEBSITE_URL", "")
 MAX_VIDEO_BYTES = 20 * 1024 * 1024  # 20 МБ — лимит Telegram Bot API
+DONE_BTN = "Готово ✅"
 
 
 # ── Клавиатуры ──────────────────────────────────────────────────────────────
@@ -34,6 +35,14 @@ def skip_kb() -> ReplyKeyboardMarkup:
 def location_kb() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[[KeyboardButton(text="📍 Поделиться геолокацией", request_location=True)]],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
+
+def done_kb() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text=DONE_BTN)]],
         resize_keyboard=True,
         one_time_keyboard=True,
     )
@@ -79,7 +88,7 @@ async def step_city_geo(message: Message, state: FSMContext):
 
     await state.update_data(city=city, lat=lat, lng=lng)
     await message.answer(f"📍 {city}", reply_markup=ReplyKeyboardRemove())
-    await ask_video(message, state)
+    await ask_videos(message, state)
 
 
 # ── Шаг 3 — Город (текст) ───────────────────────────────────────────────────
@@ -93,24 +102,24 @@ async def step_city_text(message: Message, state: FSMContext):
         lat, lng = coords
         await state.update_data(city=city_text, lat=lat, lng=lng)
     else:
-        # Город не найден на карте — сохраняем текст, координаты пустые
         await state.update_data(city=city_text, lat=None, lng=None)
 
-    await ask_video(message, state)
+    await ask_videos(message, state)
 
 
-async def ask_video(message: Message, state: FSMContext):
+async def ask_videos(message: Message, state: FSMContext):
+    await state.update_data(video_urls=[])
     await message.answer(
         "Запиши видеопоздравление для Вари и её родителей 🎥\n"
-        "_(до 2 минут)_",
+        "_(до 2 минут, можно отправить несколько)_",
         reply_markup=ReplyKeyboardRemove(),
     )
-    await state.set_state(CongratsFlow.video)
+    await state.set_state(CongratsFlow.videos)
 
 
-# ── Шаг 4 — Видео ───────────────────────────────────────────────────────────
+# ── Шаг 4 — Видео (несколько) ───────────────────────────────────────────────
 
-@router.message(CongratsFlow.video, F.video | F.video_note)
+@router.message(CongratsFlow.videos, F.video | F.video_note)
 async def step_video(message: Message, state: FSMContext, bot: Bot):
     video = message.video or message.video_note
 
@@ -129,21 +138,42 @@ async def step_video(message: Message, state: FSMContext, bot: Bot):
     buf.seek(0)
 
     url = await upload_video(buf.read(), f"{video.file_id}.mp4")
-    await state.update_data(video_url=url)
 
+    data = await state.get_data()
+    video_urls = data.get("video_urls", [])
+    video_urls.append(url)
+    await state.update_data(video_urls=video_urls)
+
+    count = len(video_urls)
+    await message.answer(
+        f"Видео {count} принято ✅\nМожешь отправить ещё или нажми кнопку ниже.",
+        reply_markup=done_kb(),
+    )
+
+
+@router.message(CongratsFlow.videos, F.text == DONE_BTN)
+async def step_videos_done(message: Message, state: FSMContext):
+    data = await state.get_data()
+    if not data.get("video_urls"):
+        await message.answer("Сначала отправь хотя бы одно видео 🎥")
+        return
+    await ask_message(message, state)
+
+
+@router.message(CongratsFlow.videos)
+async def step_videos_wrong(message: Message):
+    await message.answer("Пожалуйста, отправь видео 🎥 или нажми «Готово ✅».")
+
+
+# ── Шаг 5 — Пожелание текстом ───────────────────────────────────────────────
+
+async def ask_message(message: Message, state: FSMContext):
     await message.answer(
         "Напиши пару слов — это будет подпись под твоим пином на карте 🗺️",
         reply_markup=skip_kb(),
     )
     await state.set_state(CongratsFlow.message)
 
-
-@router.message(CongratsFlow.video)
-async def step_video_wrong(message: Message):
-    await message.answer("Пожалуйста, отправь именно видео 🎥")
-
-
-# ── Шаг 5 — Пожелание текстом ───────────────────────────────────────────────
 
 @router.message(CongratsFlow.message, F.text)
 async def step_message(message: Message, state: FSMContext):
@@ -165,13 +195,13 @@ async def step_advice(message: Message, state: FSMContext):
 
     data = await state.get_data()
     await save_congrats({
-        "name":      data.get("name"),
-        "city":      data.get("city"),
-        "lat":       data.get("lat"),
-        "lng":       data.get("lng"),
-        "video_url": data.get("video_url"),
-        "message":   data.get("message"),
-        "advice":    advice,
+        "name":       data.get("name"),
+        "city":       data.get("city"),
+        "lat":        data.get("lat"),
+        "lng":        data.get("lng"),
+        "video_urls": data.get("video_urls", []),
+        "message":    data.get("message"),
+        "advice":     advice,
     })
 
     website_line = f"\n\n🌍 Посмотреть на карте: {WEBSITE_URL}" if WEBSITE_URL else ""

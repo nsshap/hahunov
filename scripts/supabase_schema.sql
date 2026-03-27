@@ -26,7 +26,7 @@ create table congratulations (
   lng        double precision,
   name       text,                   -- имя отправителя
   city       text,                   -- город (текст)
-  video_url  text,                   -- видео в Supabase Storage
+  video_urls text[],                 -- видео в Supabase Storage (массив)
   message    text,                   -- пожелание (опционально)
   advice     text,                   -- непрошеный совет (опционально)
   created_at timestamptz default now()
