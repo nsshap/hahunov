@@ -13,7 +13,7 @@ from aiogram.fsm.context import FSMContext
 
 from states import CongratsFlow
 from geocode import geocode_city, reverse_geocode
-from supabase_client import upload_video, save_congrats
+from supabase_client import upload_video, upload_audio, save_congrats
 
 router = Router()
 
@@ -108,16 +108,16 @@ async def step_city_text(message: Message, state: FSMContext):
 
 
 async def ask_videos(message: Message, state: FSMContext):
-    await state.update_data(video_urls=[])
+    await state.update_data(video_urls=[], audio_urls=[])
     await message.answer(
-        "Запиши видеопоздравление для Вари и её родителей 🎥\n"
-        "_(до 2 минут, можно отправить несколько)_",
+        "Запиши поздравление для Вари и её родителей 🎥\n"
+        "_(видео, кружок или голосовое — можно отправить несколько)_",
         reply_markup=ReplyKeyboardRemove(),
     )
     await state.set_state(CongratsFlow.videos)
 
 
-# ── Шаг 4 — Видео (несколько) ───────────────────────────────────────────────
+# ── Шаг 4 — Видео / кружок / голосовое (несколько) ─────────────────────────
 
 @router.message(CongratsFlow.videos, F.video | F.video_note)
 async def step_video(message: Message, state: FSMContext, bot: Bot):
@@ -144,9 +144,32 @@ async def step_video(message: Message, state: FSMContext, bot: Bot):
     video_urls.append(url)
     await state.update_data(video_urls=video_urls)
 
-    count = len(video_urls)
+    total = len(video_urls) + len(data.get("audio_urls", []))
     await message.answer(
-        f"Видео {count} принято ✅\nМожешь отправить ещё или нажми кнопку ниже.",
+        f"Принято {total} ✅ Можешь отправить ещё или нажми кнопку ниже.",
+        reply_markup=done_kb(),
+    )
+
+
+@router.message(CongratsFlow.videos, F.voice)
+async def step_voice(message: Message, state: FSMContext, bot: Bot):
+    await message.answer("Загружаем голосовое… ⏳")
+
+    file = await bot.get_file(message.voice.file_id)
+    buf = io.BytesIO()
+    await bot.download_file(file.file_path, buf)
+    buf.seek(0)
+
+    url = await upload_audio(buf.read(), f"{message.voice.file_id}.ogg")
+
+    data = await state.get_data()
+    audio_urls = data.get("audio_urls", [])
+    audio_urls.append(url)
+    await state.update_data(audio_urls=audio_urls)
+
+    total = len(data.get("video_urls", [])) + len(audio_urls)
+    await message.answer(
+        f"Принято {total} ✅ Можешь отправить ещё или нажми кнопку ниже.",
         reply_markup=done_kb(),
     )
 
@@ -154,15 +177,15 @@ async def step_video(message: Message, state: FSMContext, bot: Bot):
 @router.message(CongratsFlow.videos, F.text == DONE_BTN)
 async def step_videos_done(message: Message, state: FSMContext):
     data = await state.get_data()
-    if not data.get("video_urls"):
-        await message.answer("Сначала отправь хотя бы одно видео 🎥")
+    if not data.get("video_urls") and not data.get("audio_urls"):
+        await message.answer("Сначала отправь видео, кружок или голосовое 🎥")
         return
     await ask_message(message, state)
 
 
 @router.message(CongratsFlow.videos)
 async def step_videos_wrong(message: Message):
-    await message.answer("Пожалуйста, отправь видео 🎥 или нажми «Готово ✅».")
+    await message.answer("Пожалуйста, отправь видео, кружок или голосовое 🎥")
 
 
 # ── Шаг 5 — Пожелание текстом ───────────────────────────────────────────────
@@ -200,6 +223,7 @@ async def step_advice(message: Message, state: FSMContext):
         "lat":        data.get("lat"),
         "lng":        data.get("lng"),
         "video_urls": data.get("video_urls", []),
+        "audio_urls": data.get("audio_urls", []),
         "message":    data.get("message"),
         "advice":     advice,
     })

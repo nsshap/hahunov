@@ -11,3 +11,7 @@ UPDATE congratulations
 
 ALTER TABLE congratulations
   DROP COLUMN IF EXISTS video_url;
+
+-- Добавить колонку для голосовых сообщений
+ALTER TABLE congratulations
+  ADD COLUMN IF NOT EXISTS audio_urls text[];

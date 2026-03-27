@@ -12,6 +12,7 @@ export default function MediaModal({ items, tab, onClose }) {
     : pin.video_url
     ? [pin.video_url]
     : []
+  const audioUrls = pin.audio_urls ?? []
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -45,6 +46,9 @@ export default function MediaModal({ items, tab, onClose }) {
           <div className="modal-videos">
             {videoUrls.map((url, i) => (
               <video key={i} src={url} controls playsInline className="modal-video" />
+            ))}
+            {audioUrls.map((url, i) => (
+              <audio key={i} src={url} controls className="modal-audio" />
             ))}
           </div>
         )}

@@ -139,6 +139,13 @@
   gap: 2px;
 }
 
+/* ── Аудио плеер ── */
+.modal-audio {
+  width: 100%;
+  padding: 8px 0;
+  display: block;
+}
+
 /* ── Счётчик поздравлений ── */
 .modal-count {
   font-size: 11px;
