@@ -8,22 +8,27 @@ export default function App() {
   return (
     <div className="app">
       <header className="header">
-        <div className="header-left">
-          <span className="header-date">20 марта 2026</span>
-          <h1 className="header-title">Барбара</h1>
-        </div>
+        <h1 className="header-title">Варвара</h1>
         <nav className="tabs">
           <button
             className={`tab ${tab === 'day' ? 'tab--active' : ''}`}
             onClick={() => setTab('day')}
           >
-            День рождения
+            <span className="tab__icon">🌍</span>
+            <span className="tab__content">
+              <span className="tab__label">20 марта 2026</span>
+              <span className="tab__sub">Мир в день рождения</span>
+            </span>
           </button>
           <button
             className={`tab ${tab === 'congrats' ? 'tab--active' : ''}`}
             onClick={() => setTab('congrats')}
           >
-            Поздравления
+            <span className="tab__icon">💌</span>
+            <span className="tab__content">
+              <span className="tab__label">Поздравления</span>
+              <span className="tab__sub">От тех, кто тебя любит</span>
+            </span>
           </button>
         </nav>
       </header>

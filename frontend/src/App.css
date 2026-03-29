@@ -10,42 +10,34 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 28px;
-  height: 64px;
+  height: 72px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   z-index: 1000;
 }
 
-.header-left {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-}
-
-.header-date {
-  font-family: 'Inter', sans-serif;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
 .header-title {
   font-family: 'Cormorant Garamond', serif;
-  font-weight: 300;
-  font-size: 28px;
-  letter-spacing: 0.04em;
-  color: var(--rose);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 32px;
+  letter-spacing: 0.06em;
+  background: linear-gradient(135deg, #f0a0b0 0%, #e8b4b8 50%, #c9a96e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  filter: drop-shadow(0 0 12px rgba(232,180,184,0.35));
 }
 
 /* ── Tabs ── */
 .tabs {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   background: rgba(255,255,255,0.04);
-  border-radius: 8px;
-  padding: 3px;
+  border-radius: 12px;
+  padding: 4px;
 }
 
 .tab {
@@ -53,20 +45,56 @@
   border: none;
   color: var(--muted);
   font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 400;
-  padding: 6px 16px;
-  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
+  border-radius: 9px;
+  padding: 6px 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
 }
 
-.tab:hover { color: var(--text); }
+.tab__icon {
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.tab__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tab__label {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  transition: color 0.2s ease;
+}
+
+.tab__sub {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+.tab:hover .tab__label { color: var(--text); }
 
 .tab--active {
-  background: var(--surface);
+  background: rgba(232,180,184,0.1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(232,180,184,0.2);
+}
+
+.tab--active .tab__label {
   color: var(--rose);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+.tab--active .tab__sub {
+  color: rgba(232,180,184,0.6);
 }
 
 /* ── Main ── */
