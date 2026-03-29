@@ -29,6 +29,19 @@
   background-clip: text;
   text-shadow: none;
   filter: drop-shadow(0 0 12px rgba(232,180,184,0.35));
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.header-date {
+  font-family: 'Inter', sans-serif;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
 }
 
 /* ── Tabs ── */

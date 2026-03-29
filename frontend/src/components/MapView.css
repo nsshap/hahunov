@@ -83,19 +83,19 @@
 }
 
 /* Rose — вкладка 1 */
-.pin--rose .pin__dot  { background: var(--rose); box-shadow: 0 0 8px rgba(232,180,184,0.6); }
-.pin--rose .pin__pulse { border: 1.5px solid var(--rose); }
+.pin--rose .pin__dot  { background: #ff6b35; box-shadow: 0 0 10px rgba(255,107,53,0.8); }
+.pin--rose .pin__pulse { border: 1.5px solid #ff6b35; }
 
 /* Gold — вкладка 2 */
-.pin--gold .pin__dot  { background: var(--gold); box-shadow: 0 0 8px rgba(201,169,110,0.6); }
-.pin--gold .pin__pulse { border: 1.5px solid var(--gold); }
+.pin--gold .pin__dot  { background: #ff6b35; box-shadow: 0 0 10px rgba(255,107,53,0.8); }
+.pin--gold .pin__pulse { border: 1.5px solid #ff6b35; }
 
 /* Бейдж с количеством поздравлений на пине */
 .pin__count {
   position: absolute;
   top: -6px;
   right: -6px;
-  background: var(--gold);
+  background: #ff6b35;
   color: #000;
   font-size: 9px;
   font-weight: 700;
