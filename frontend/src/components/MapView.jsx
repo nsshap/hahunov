@@ -59,6 +59,17 @@ export default function MapView({ tab }) {
     load()
   }, [])
 
+  // Группируем day_pins по локации (одинаковые lat/lng → один пин)
+  const groupedDayPins = useMemo(() => {
+    const groups = {}
+    dayPins.forEach(p => {
+      const key = `${p.lat},${p.lng}`
+      if (!groups[key]) groups[key] = { lat: p.lat, lng: p.lng, items: [] }
+      groups[key].items.push(p)
+    })
+    return Object.values(groups)
+  }, [dayPins])
+
   // Группируем поздравления по локации (одинаковые lat/lng → один пин)
   const groupedCongrats = useMemo(() => {
     const groups = {}
@@ -98,12 +109,14 @@ export default function MapView({ tab }) {
 
         <MapController pins={isDay ? dayPins : congrats} />
 
-        {isDay && dayPins.map(pin => (
+        {isDay && groupedDayPins.map((group, i) => (
           <Marker
-            key={pin.id}
-            position={[pin.lat, pin.lng]}
-            icon={iconRose}
-            eventHandlers={{ click: () => setSelected([pin]) }}
+            key={i}
+            position={[group.lat, group.lng]}
+            icon={group.items.length > 1
+              ? makeIconCount('rose', group.items.length)
+              : iconRose}
+            eventHandlers={{ click: () => setSelected(group.items) }}
           />
         ))}
 
