@@ -3,7 +3,9 @@ import MapView from './components/MapView'
 import './App.css'
 
 export default function App() {
-  const [tab, setTab] = useState('day')
+  const [tab, setTab] = useState(() =>
+    window.location.hash === '#congrats' ? 'congrats' : 'day'
+  )
 
   return (
     <div className="app">
@@ -17,7 +19,7 @@ export default function App() {
             <span className="tab__icon">🌍</span>
             <span className="tab__content">
               <span className="tab__label">Мир в этот день</span>
-              <span className="tab__sub">Как выглядела Земля 20 марта</span>
+              <span className="tab__sub">Как выглядела Земля 20 марта 2026 года</span>
             </span>
           </button>
           <button
@@ -27,7 +29,7 @@ export default function App() {
             <span className="tab__icon">💌</span>
             <span className="tab__content">
               <span className="tab__label">Поздравляшки</span>
-              <span className="tab__sub">От тех, кто тебя любит</span>
+              <span className="tab__sub">От тех, кто любит тебя и твоих родителей</span>
             </span>
           </button>
         </nav>

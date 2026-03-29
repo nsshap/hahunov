@@ -53,10 +53,11 @@ def done_kb() -> ReplyKeyboardMarkup:
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
+    website_line = f"\n\n🌍 Карта поздравлений уже здесь: {WEBSITE_URL}#congrats" if WEBSITE_URL else ""
     await message.answer(
-        "Привет! 20 марта у Лёши и Алины родилась дочка Варвара 🌸\n\n"
-        "Давай запишем твоё поздравление для неё и её родителей — "
-        "оно появится на карте мира.",
+        f"Привет! 20 марта у Лёши и Алины родилась дочка Варвара 🌸\n\n"
+        f"Давай запишем твоё поздравление для неё и её родителей — "
+        f"оно появится на карте мира.{website_line}",
         reply_markup=ReplyKeyboardRemove(),
     )
     await message.answer(
@@ -180,7 +181,7 @@ async def step_videos_done(message: Message, state: FSMContext):
     if not data.get("video_urls") and not data.get("audio_urls"):
         await message.answer("Сначала отправь видео, кружок или голосовое 🎥")
         return
-    await ask_message(message, state)
+    await ask_advice(message, state)
 
 
 @router.message(CongratsFlow.videos)
@@ -188,29 +189,15 @@ async def step_videos_wrong(message: Message):
     await message.answer("Пожалуйста, отправь видео, кружок или голосовое 🎥")
 
 
-# ── Шаг 5 — Пожелание текстом ───────────────────────────────────────────────
+# ── Шаг 5 — Непрошеный совет ────────────────────────────────────────────────
 
-async def ask_message(message: Message, state: FSMContext):
-    await message.answer(
-        "Напиши пару слов — это будет подпись под твоим пином на карте 🗺️",
-        reply_markup=skip_kb(),
-    )
-    await state.set_state(CongratsFlow.message)
-
-
-@router.message(CongratsFlow.message, F.text)
-async def step_message(message: Message, state: FSMContext):
-    text = None if message.text == "Пропустить →" else message.text.strip()
-    await state.update_data(message=text)
-
+async def ask_advice(message: Message, state: FSMContext):
     await message.answer(
         "Твой непрошеный совет — родителям или Варе, на твой выбор 😄",
         reply_markup=skip_kb(),
     )
     await state.set_state(CongratsFlow.advice)
 
-
-# ── Шаг 6 — Непрошеный совет ────────────────────────────────────────────────
 
 @router.message(CongratsFlow.advice, F.text)
 async def step_advice(message: Message, state: FSMContext):
@@ -224,11 +211,10 @@ async def step_advice(message: Message, state: FSMContext):
         "lng":        data.get("lng"),
         "video_urls": data.get("video_urls", []),
         "audio_urls": data.get("audio_urls", []),
-        "message":    data.get("message"),
         "advice":     advice,
     })
 
-    website_line = f"\n\n🌍 Посмотреть на карте: {WEBSITE_URL}" if WEBSITE_URL else ""
+    website_line = f"\n\n🌍 Посмотреть на карте: {WEBSITE_URL}#congrats" if WEBSITE_URL else ""
     await message.answer(
         f"Спасибо! Твоё поздравление уже на карте 🗺️{website_line}",
         reply_markup=ReplyKeyboardRemove(),
