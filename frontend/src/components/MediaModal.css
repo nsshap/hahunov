@@ -144,6 +144,10 @@
   flex-direction: column;
 }
 
+.modal-congrats-meta {
+  padding: 0 0 8px;
+}
+
 /* ── Аудио плеер ── */
 .modal-audio {
   width: 100%;
