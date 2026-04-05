@@ -139,6 +139,11 @@
   gap: 2px;
 }
 
+.modal-media-item {
+  display: flex;
+  flex-direction: column;
+}
+
 /* ── Аудио плеер ── */
 .modal-audio {
   width: 100%;

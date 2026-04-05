@@ -28,19 +28,24 @@ export default function MediaModal({ items, tab, onClose }) {
           {tab === 'congrats' && pin.name && (
             <span className="modal-name">{pin.name}</span>
           )}
-          {total > 1 && (
+          {tab === 'congrats' && total > 1 && (
             <span className="modal-count">{idx + 1} / {total}</span>
           )}
         </div>
 
-        {/* Медиа */}
+        {/* Медиа для вкладки "день" — все сразу списком */}
         {tab === 'day' ? (
-          <div className="modal-media">
-            {pin.media_type === 'video' ? (
-              <video src={pin.media_url} controls autoPlay playsInline className="modal-video" />
-            ) : (
-              <img src={pin.media_url} alt={pin.location} className="modal-image" />
-            )}
+          <div className="modal-videos">
+            {items.map((item, i) => (
+              <div key={item.id ?? i} className="modal-media-item">
+                {item.media_type === 'video' ? (
+                  <video src={item.media_url} controls playsInline className="modal-video" />
+                ) : (
+                  <img src={item.media_url} alt={item.location} className="modal-image" />
+                )}
+                {item.caption && <p className="modal-caption">{item.caption}</p>}
+              </div>
+            ))}
           </div>
         ) : (
           <div className="modal-videos">
@@ -58,11 +63,6 @@ export default function MediaModal({ items, tab, onClose }) {
           <p className="modal-caption">{pin.message}</p>
         )}
 
-        {/* caption для day_pins */}
-        {tab === 'day' && pin.caption && (
-          <p className="modal-caption">{pin.caption}</p>
-        )}
-
         {/* Непрошеный совет */}
         {tab === 'congrats' && pin.advice && (
           <div className="modal-advice">
@@ -72,7 +72,7 @@ export default function MediaModal({ items, tab, onClose }) {
         )}
 
         {/* Навигация между поздравлениями */}
-        {total > 1 && (
+        {tab === 'congrats' && total > 1 && (
           <div className="modal-nav">
             <button
               className="modal-nav-btn"
