@@ -133,12 +133,20 @@ async def step_video(message: Message, state: FSMContext, bot: Bot):
 
     await message.answer("Загружаем видео… ⏳")
 
-    file = await bot.get_file(video.file_id)
-    buf = io.BytesIO()
-    await bot.download_file(file.file_path, buf)
-    buf.seek(0)
+    try:
+        file = await bot.get_file(video.file_id)
+        buf = io.BytesIO()
+        await bot.download_file(file.file_path, buf)
+        buf.seek(0)
 
-    url = await upload_video(buf.read(), f"{video.file_id}.mp4")
+        url = await upload_video(buf.read(), f"{video.file_id}.mp4")
+    except Exception as e:
+        import logging
+        logging.exception("Ошибка при загрузке видео: %s", e)
+        await message.answer(
+            "Не удалось загрузить видео 😔 Попробуй ещё раз или отправь другое."
+        )
+        return
 
     data = await state.get_data()
     video_urls = data.get("video_urls", [])
@@ -156,12 +164,20 @@ async def step_video(message: Message, state: FSMContext, bot: Bot):
 async def step_voice(message: Message, state: FSMContext, bot: Bot):
     await message.answer("Загружаем голосовое… ⏳")
 
-    file = await bot.get_file(message.voice.file_id)
-    buf = io.BytesIO()
-    await bot.download_file(file.file_path, buf)
-    buf.seek(0)
+    try:
+        file = await bot.get_file(message.voice.file_id)
+        buf = io.BytesIO()
+        await bot.download_file(file.file_path, buf)
+        buf.seek(0)
 
-    url = await upload_audio(buf.read(), f"{message.voice.file_id}.ogg")
+        url = await upload_audio(buf.read(), f"{message.voice.file_id}.ogg")
+    except Exception as e:
+        import logging
+        logging.exception("Ошибка при загрузке голосового: %s", e)
+        await message.answer(
+            "Не удалось загрузить голосовое 😔 Попробуй ещё раз."
+        )
+        return
 
     data = await state.get_data()
     audio_urls = data.get("audio_urls", [])
