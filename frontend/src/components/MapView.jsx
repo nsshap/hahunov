@@ -70,11 +70,13 @@ export default function MapView({ tab }) {
     return Object.values(groups)
   }, [dayPins])
 
-  // Группируем поздравления по локации (одинаковые lat/lng → один пин)
+  // Группируем поздравления по локации с округлением до 0.1° (~11 км)
+  // чтобы GPS-координата и геокодированный адрес одного города попадали в один пин
   const groupedCongrats = useMemo(() => {
+    const round = x => Math.floor(x * 10) / 10
     const groups = {}
     congrats.forEach(c => {
-      const key = `${c.lat},${c.lng}`
+      const key = `${round(c.lat)},${round(c.lng)}`
       if (!groups[key]) groups[key] = { lat: c.lat, lng: c.lng, items: [] }
       groups[key].items.push(c)
     })
