@@ -61,16 +61,13 @@ export default function MapView({ tab }) {
 
   // Группируем day_pins по локации (одинаковые lat/lng → один пин)
   const groupedDayPins = useMemo(() => {
-    console.log('dayPins raw:', dayPins.map(p => ({ id: p.id, location: p.location, lat: p.lat, lng: p.lng })))
     const groups = {}
     dayPins.forEach(p => {
       const key = `${p.lat},${p.lng}`
       if (!groups[key]) groups[key] = { lat: p.lat, lng: p.lng, items: [] }
       groups[key].items.push(p)
     })
-    const result = Object.values(groups)
-    console.log('groupedDayPins:', result.map(g => ({ location: g.items[0]?.location, count: g.items.length, lat: g.lat, lng: g.lng })))
-    return result
+    return Object.values(groups)
   }, [dayPins])
 
   // Группируем поздравления по локации (одинаковые lat/lng → один пин)

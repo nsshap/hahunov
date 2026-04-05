@@ -1,4 +1,5 @@
 import io
+import logging
 import os
 
 from aiogram import Router, F, Bot
@@ -141,7 +142,6 @@ async def step_video(message: Message, state: FSMContext, bot: Bot):
 
         url = await upload_video(buf.read(), f"{video.file_id}.mp4")
     except Exception as e:
-        import logging
         logging.exception("Ошибка при загрузке видео: %s", e)
         await message.answer(
             "Не удалось загрузить видео 😔 Попробуй ещё раз или отправь другое."
@@ -172,7 +172,6 @@ async def step_voice(message: Message, state: FSMContext, bot: Bot):
 
         url = await upload_audio(buf.read(), f"{message.voice.file_id}.ogg")
     except Exception as e:
-        import logging
         logging.exception("Ошибка при загрузке голосового: %s", e)
         await message.answer(
             "Не удалось загрузить голосовое 😔 Попробуй ещё раз."
@@ -219,16 +218,25 @@ async def ask_advice(message: Message, state: FSMContext):
 async def step_advice(message: Message, state: FSMContext):
     advice = None if message.text == "Пропустить →" else message.text.strip()
 
+    import logging
     data = await state.get_data()
-    await save_congrats({
-        "name":       data.get("name"),
-        "city":       data.get("city"),
-        "lat":        data.get("lat"),
-        "lng":        data.get("lng"),
-        "video_urls": data.get("video_urls", []),
-        "audio_urls": data.get("audio_urls", []),
-        "advice":     advice,
-    })
+    try:
+        await save_congrats({
+            "name":       data.get("name"),
+            "city":       data.get("city"),
+            "lat":        data.get("lat"),
+            "lng":        data.get("lng"),
+            "video_urls": data.get("video_urls", []),
+            "audio_urls": data.get("audio_urls", []),
+            "advice":     advice,
+        })
+    except Exception as e:
+        logging.exception("Ошибка при сохранении поздравления: %s", e)
+        await message.answer(
+            "Упс, не удалось сохранить поздравление 😔 Попробуй ещё раз — нажми /start",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return
 
     website_line = f"\n\n🌍 Посмотреть на карте: {WEBSITE_URL}#congrats" if WEBSITE_URL else ""
     await message.answer(
