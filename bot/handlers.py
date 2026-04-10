@@ -9,18 +9,19 @@ from aiogram.types import (
     KeyboardButton,
     ReplyKeyboardRemove,
 )
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 
 from states import CongratsFlow
 from geocode import geocode_city, reverse_geocode
-from supabase_client import upload_video, upload_audio, save_congrats
+from supabase_client import upload_video, upload_audio, save_congrats, log_session, get_stats
 
 router = Router()
 
 WEBSITE_URL = os.environ.get("WEBSITE_URL", "")
 MAX_VIDEO_BYTES = 20 * 1024 * 1024  # 20 МБ — лимит Telegram Bot API
 DONE_BTN = "Готово ✅"
+ADMIN_ID = int(os.environ.get("ADMIN_TG_ID", "0"))
 
 
 # ── Клавиатуры ──────────────────────────────────────────────────────────────
@@ -53,6 +54,10 @@ def done_kb() -> ReplyKeyboardMarkup:
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
+    try:
+        await log_session(message.from_user)
+    except Exception as e:
+        logging.exception("Ошибка при логировании сессии: %s", e)
     await state.clear()
     website_line = f"\n\n🌍 Карта поздравлений уже здесь: {WEBSITE_URL}#congrats" if WEBSITE_URL else ""
     await message.answer(
@@ -65,6 +70,39 @@ async def cmd_start(message: Message, state: FSMContext):
         "Как тебя зовут? (имя и фамилия или просто имя — как хочешь)"
     )
     await state.set_state(CongratsFlow.name)
+
+
+# ── /stats ───────────────────────────────────────────────────────────────────
+
+@router.message(Command("stats"))
+async def cmd_stats(message: Message):
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    s = await get_stats()
+    if s["total"] == 0:
+        await message.answer("Пока никто не заходил.")
+        return
+
+    langs = ", ".join(f"{lc} — {cnt}" for lc, cnt in sorted(s["languages"].items(), key=lambda x: -x[1]))
+
+    recent_lines = []
+    for r in s["recent"]:
+        name = " ".join(filter(None, [r.get("first_name"), r.get("last_name")])) or "—"
+        uname = f" (@{r['username']})" if r.get("username") else ""
+        dt = r["started_at"][5:16].replace("T", " ")
+        recent_lines.append(f"• {name}{uname} — {dt}")
+
+    text = (
+        f"📊 Статистика бота\n\n"
+        f"👥 Всего заходов: {s['total']}\n"
+        f"🆔 Уникальных: {s['unique']}\n"
+        f"🆕 Сегодня: {s['today']}\n"
+        f"⭐️ Premium: {s['premium']}\n"
+        f"🌍 Языки: {langs}\n\n"
+        f"🕐 Последние 5:\n" + "\n".join(recent_lines)
+    )
+    await message.answer(text)
 
 
 # ── Шаг 2 — Имя ─────────────────────────────────────────────────────────────
